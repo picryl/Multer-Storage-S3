@@ -4,10 +4,10 @@ var mime = require( 'mime-types' );
 var AWS = require( 'aws-sdk' );
 
 function getFilename( req, file, cb ) {
-
+	var ext = path.extname(file.originalname);
 	crypto.pseudoRandomBytes( 16, function ( err, raw ) {
 
-		cb( err, err ? undefined : raw.toString( 'hex' ) );
+		cb( err, err ? undefined : raw.toString( 'hex' ) + ext );
 
 	});
 
@@ -33,16 +33,16 @@ function S3Storage( opts ) {
 
 	}
 
-	opts.region = ( opts.region || process.env.AWS_REGION || 'us-west-2' );
-	opts.bucket = ( opts.bucket || process.env.S3_BUCKET || null );
 
-	if ( ! opts.bucket ) {
-
-		throw new Error( 'You have to specify bucket for S3 Storage to work.' );
-
+	if (!opts.aws) {
+		throw new Error( 'You have to specify aws for S3 Storage to work.' );
 	}
 
-	AWS.config.region = opts.region;
+	if (!opts.bucket) {
+		throw new Error( 'You have to specify bucket for S3 Storage to work.' );
+	}
+
+	AWS.config.update(opts.aws);
 
 	this.s3obj = new AWS.S3({
 		params: {
@@ -131,7 +131,7 @@ S3Storage.prototype._handleFile = function _handleFile( req, file, cb ) {
 S3Storage.prototype._removeFile = function _removeFile( req, file, cb ) {
 	
 	this.s3obj.deleteObject({
-		Bucket: this.options.bucker,
+		Bucket: this.options.bucket,
 		Key   : file.path
 	}, cb );
 
