@@ -88,6 +88,10 @@ S3Storage.prototype._handleFile = function _handleFile( req, file, cb ) {
 				
 			}
 
+			if (self.options.ACL) {
+				params.ACL = self.options.ACL;
+			}
+
 			self.s3obj
 				.upload( params )
 				.on( 'httpUploadProgress', function( info ){
